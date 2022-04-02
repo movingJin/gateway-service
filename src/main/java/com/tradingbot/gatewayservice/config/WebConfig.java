@@ -27,7 +27,7 @@ public class WebConfig implements WebFluxConfigurer {
         corsConfig.setAllowedOrigins(List.of(
                 "http://118.32.227.130:3000",
                 "http://118.32.227.130:22732",
-                "http://trading-bot.movingjin.com:22732"
+                "https://trading-bot.movingjin.com/"
         ));
 
         corsConfig.setMaxAge(8000L);
