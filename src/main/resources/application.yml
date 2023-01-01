@@ -1,0 +1,77 @@
+server:
+  port: 8000
+  ssl:
+    key-store: classpath:ssl/keystore.p12
+    key-store-type: PKCS12
+    key-store-password: sh110930sh35!
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: 192.168.0.3
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://192.168.0.3:8761/eureka
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      httpclient:
+        wiretap: true
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/login
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/users
+            - Method=POST
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/user-service/**
+            - Method=GET
+          filters:
+            - RemoveRequestHeader=Cookie
+            - RewritePath=/user-service/(?<segment>.*), /$\{segment}
+            - AuthorizationHeaderFilter
+        - id: coin-service
+          uri: lb://COIN-SERVICE
+          predicates:
+            - Path=/coin-service/**
+          filters:
+            - RewritePath=/coin-service/(?<segment>.*), /$\{segment}
+        - id: trading-service
+          uri: lb://TRADING-SERVICE
+          predicates:
+            - Path=/trading-service/**
+          filters:
+            - RewritePath=/trading-service/(?<segment>.*), /$\{segment}
+
+token:
+  expiration_time: 86400000
+  secret: tradingbot
+
+logging:
+  file:
+    name: ./log/spring.log
+  level:
+    root : error
+    org.springframework.cloud.gateway: info
+  logback:
+    rollingpolicy:
+      max-history: 7
+      max-file-size: 10MB
